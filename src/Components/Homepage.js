@@ -4,14 +4,18 @@ import React, { useEffect } from "react";
 import { auth, db } from "../Config/Config";
 import { useNavigate } from "react-router-dom";
 import { uid } from "uid";
-import { onValue, ref, remove, set } from "firebase/database";
+import { onValue, ref, remove, set, update } from "firebase/database";
 
 function Homepage() {
   const [todo, setTodo] = React.useState("");
   const [todos, setTodos] = React.useState([]);
   const [desc, setDesc] = React.useState("");
-  const [descs, setDescs] = React.useState([]);
+  const [filter, setFilter] = React.useState("all");
+  const [all, setAll] = React.useState(true);
+
   const navigate = useNavigate();
+
+  // Read
 
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
@@ -29,7 +33,71 @@ function Homepage() {
         navigate("/");
       }
     });
-  }, []);
+  }, [filter]);
+
+  console.log(todos);
+
+  // Add
+
+  const writeToDatabase = () => {
+    const uidd = uid();
+    set(ref(db, `/${auth.currentUser.uid}/${uidd}`), {
+      todo: todo,
+      desc: desc,
+      uidd: uidd,
+      status: "all",
+    });
+    setTodo("");
+    setDesc("");
+  };
+
+  // Update
+  const handleComplete = (uidd) => {
+    update(ref(db, `/${auth.currentUser.uid}/${uidd}`), {
+      status: "complete",
+      uidd: uidd,
+    });
+  };
+
+  const handleFavorite = (uidd) => {
+    update(ref(db, `/${auth.currentUser.uid}/${uidd}`), {
+      status: "favorite",
+      uidd: uidd,
+    });
+  };
+
+  const handleDelete = (uidd) => {
+    update(ref(db, `/${auth.currentUser.uid}/${uidd}`), {
+      status: "deleted",
+      uidd: uidd,
+    });
+    setFilter("deleted");
+  };
+
+  // Delete
+
+  // const handleDelete = (uidd) => {
+  //   remove(ref(db, `/${auth.currentUser.uid}/${uidd}`));
+  // };
+
+  // Completed
+
+  const handleCompleted = (e) => {
+    if (e.target.value == 1) {
+      setAll(true);
+    } else if (e.target.value == 2) {
+      setAll(false);
+      setFilter("complete");
+    } else if (e.target.value == 3) {
+      setAll(false);
+      setFilter("favorite");
+    } else if (e.target.value == 4) {
+      setAll(false);
+      setFilter("deleted");
+    }
+  };
+
+  // Signout
 
   const HanndleSignout = () => {
     signOut(auth)
@@ -39,26 +107,6 @@ function Homepage() {
       .catch((error) => {
         alert(error.message);
       });
-  };
-
-  // Read
-
-  // Add
-  const writeToDatabase = () => {
-    const uidd = uid();
-    set(ref(db, `/${auth.currentUser.uid}/${uidd}`), {
-      todo: todo,
-      desc: desc,
-      uidd: uidd,
-    });
-    setTodo("");
-    setDesc("");
-  };
-  // Update
-  // Delete
-
-  const handleDelete = (uidd) => {
-    remove(ref(db, `/${auth.currentUser.uid}/${uidd}`));
   };
 
   return (
@@ -117,7 +165,7 @@ function Homepage() {
           <i
             style={{ cursor: "pointer" }}
             onClick={HanndleSignout}
-            class="fa fa-sign-out float-end"
+            className="fa fa-sign-out float-end"
             aria-hidden="true"
           >
             Logout
@@ -150,19 +198,26 @@ function Homepage() {
 
           <div className="float-end " style={{ width: "40%", float: "left" }}>
             {/* select tag */}
-            <select class="form-select" aria-label="Default select example">
-              <option selected>Filter</option>
-              <option value="1">Completed</option>
-              <option value="2">Favorite</option>
-              <option value="3">Deleted</option>
+            <select
+              onChange={handleCompleted}
+              className="form-select"
+              aria-label="Default select example"
+            >
+              <option value={1}>Filter</option>
+              <option value={2}>Completed</option>
+              <option value={3}>Favorite</option>
+              <option value={4}>Deleted</option>
             </select>
           </div>
 
+          
           <div style={{ marginTop: "100px" }}>
-            {todos.map((todo) => (
-              <table className="table border">
+            
+            {todos.map((todo, index) => {
+              if (all && todo.status != "deleted") {
+                return <table className="table border">
                 <thead className="float-start">
-                  <tr>
+                  <tr key={index}>
                     <th scope="col">{todo.todo}</th>
                   </tr>
                 </thead>
@@ -180,35 +235,66 @@ function Homepage() {
                       ></i>
                     </td>
                     <td className="float-end" style={{ cursor: "pointer" }}>
-                      <i class="fa fa-check" aria-hidden="true"></i>
+                      <i
+                        onClick={() => handleComplete(todo.uidd)}
+                        className="fa fa-check-circle-o"
+                        aria-hidden="true"
+                      ></i>
                     </td>
                     <td className="float-end" style={{ cursor: "pointer" }}>
-                      <i class="fa fa-star" aria-hidden="true"></i>
+                      <i
+                        onClick={() => handleFavorite(todo.uidd)}
+                        className="fa fa-star"
+                        aria-hidden="true"
+                      ></i>
                     </td>
                   </tr>
                 </tbody>
               </table>
-            ))}
+              } else if (filter == todo.status) {
+                return <table className="table border">
+                <thead className="float-start">
+                  <tr key={index}>
+                    <th scope="col">{todo.todo}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="float-start" scope="row">
+                      {todo.desc}
+                    </td>
+
+                    <td className="float-end" style={{ cursor: "pointer" }}>
+                      <i
+                        onClick={() => handleDelete(todo.uidd)}
+                        className=" fa fa-trash "
+                        aria-hidden="true"
+                      ></i>
+                    </td>
+                    <td className="float-end" style={{ cursor: "pointer" }}>
+                      <i
+                        onClick={() => handleComplete(todo.uidd)}
+                        className="fa fa-check-circle-o"
+                        aria-hidden="true"
+                      ></i>
+                    </td>
+                    <td className="float-end" style={{ cursor: "pointer" }}>
+                      <i
+                        onClick={() => handleFavorite(todo.uidd)}
+                        className="fa fa-star"
+                        aria-hidden="true"
+                      ></i>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              }
+            })}
+
+            
           </div>
         </div>
       </div>
-
-      {/* <input
-        type="text"
-        value={todo}
-        placeholder="Add todo..."
-        onChange={(e) => setTodo(e.target.value)}
-      />
-      
-      <button onClick={writeToDatabase}>Add</button>
-      <button onClick={HanndleSignout}>Sign out</button>
-      <br />
-      {todos.map((todo) => (
-        <div>
-          <h1 key={todo.id}>{todo.todo}</h1>
-          <button onClick={() => handleDelete(todo.uidd)}>Delete</button>
-        </div>
-      ))} */}
     </div>
   );
 }
