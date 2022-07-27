@@ -1,0 +1,12 @@
+{
+  "files": {
+    "main.css": "/growthtodo/static/css/main.a143877c.css",
+    "main.js": "/growthtodo/static/js/main.e1d62c98.js",
+    "static/media/bgimage.jpg": "/growthtodo/static/media/bgimage.08b19a5dd99edba5fe31.jpg",
+    "index.html": "/growthtodo/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.a143877c.css",
+    "static/js/main.e1d62c98.js"
+  ]
+}
