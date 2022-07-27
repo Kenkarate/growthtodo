@@ -30,7 +30,7 @@ function Welcome() {
     <div className="welcome">
       <div className="float-start " style={{ width: "30%", marginLeft: "10%" }}>
         <div>
-          <img
+          <img alt="logo"
             src="./images/logo.jpg"
             style={{ width: "60px", paddingTop: "10%" }}
           ></img>
@@ -49,7 +49,7 @@ function Welcome() {
 
       <div className="float-end " style={{ width: "50%", height: "100%" }}>
         <div>
-          <img style={{width: "100%", height: "100%",backgroundRepeat:"no-repeat",backgroundSize:"cover",float:"right"}} 
+          <img alt=" bg" style={{width: "100%", height: "100%",backgroundRepeat:"no-repeat",backgroundSize:"cover",float:"right"}} 
             src="./images/homeimg.jpg"></img>
         </div>
       </div>
