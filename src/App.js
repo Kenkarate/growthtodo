@@ -12,7 +12,7 @@ function App() {
     <>
       <div className="App">
 
-        <BrowserRouter>
+        <BrowserRouter basename="/growthtodo">
           <Routes>
             <Route path="/" element={<Welcome />} />
             <Route path="/homepage" element={<Homepage />} />
